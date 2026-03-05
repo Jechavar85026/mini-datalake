@@ -1,0 +1,6 @@
+cliente_id,fecha,monto,tipo
+101,2026-03-01,50000,compra
+102,2026-03-01,-20000,devolucion
+103,2026-03-01,70000,compra
+104,2026-03-01,abc,compra
+101,2026-03-01,50000,compra
