@@ -1,31 +1,32 @@
 import pandas as pd
+import os
+import shutil
 
-# Leer datos desde bronze
-df = pd.read_parquet("C:/mini-datalake/data/bronze/transacciones.parquet")
+bronze_path = "C:/mini-datalake/data/bronze"
+silver_path = "C:/mini-datalake/data/silver"
 
-# Convertir fecha
+print("Leyendo datos bronze...")
+
+df = pd.read_parquet(bronze_path)
+
 df["fecha"] = pd.to_datetime(df["fecha"])
 
-# Ordenar datos
 df = df.sort_values("fecha")
 
-# ---------------------------
-# REGLAS DE NEGOCIO
-# ---------------------------
-
-# Solo montos positivos
+# reglas de negocio
 df = df[df["monto"] > 0]
-
-# ---------------------------
-# PARTICIONES
-# ---------------------------
 
 df["year"] = df["fecha"].dt.year
 df["month"] = df["fecha"].dt.month
 
-# Guardar en silver
+# limpiar silver antes de escribir
+if os.path.exists(silver_path):
+    shutil.rmtree(silver_path)
+
+os.makedirs(silver_path, exist_ok=True)
+
 df.to_parquet(
-    "C:/mini-datalake/data/silver/transacciones.parquet",
+    silver_path,
     partition_cols=["year", "month"],
     index=False
 )

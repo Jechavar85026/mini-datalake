@@ -9,6 +9,11 @@ __pycache__/
 .env
 venv/
 
+# Data lake
+data/
+logs/
+metadata/processed_files.txt
+
 # OS
 .DS_Store
 Thumbs.db

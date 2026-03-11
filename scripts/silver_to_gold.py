@@ -1,22 +1,37 @@
 import pandas as pd
+import glob
+import os
 
-# Leer datos desde silver
-df = pd.read_parquet("C:/mini-datalake/data/silver/transacciones.parquet")
+silver_path = "C:/mini-datalake/data/silver/*/*/*.parquet"
+gold_path = "C:/mini-datalake/data/gold/clientes_resumen.parquet"
 
-# -------------------------
-# AGREGACIÓN GOLD
-# -------------------------
+print("Leyendo datos silver...")
 
-ventas_dia = df.groupby("fecha")["monto"].sum().reset_index()
+files = glob.glob(silver_path)
 
-ventas_dia = ventas_dia.rename(columns={
-    "monto": "total_ventas"
-})
+if len(files) == 0:
+    print("No se encontraron archivos en SILVER")
+    exit()
 
-# Guardar en gold
-ventas_dia.to_parquet(
-    "C:/mini-datalake/data/gold/ventas_por_dia.parquet",
-    index=False
-)
+df_list = []
 
-print("Proceso silver -> gold completado")
+for file in files:
+    df = pd.read_parquet(file)
+    df_list.append(df)
+
+df = pd.concat(df_list, ignore_index=True)
+
+print("Filas silver:", len(df))
+
+clientes = df.groupby("cliente_id").agg(
+    total_transacciones=("monto", "count"),
+    monto_total=("monto", "sum"),
+    monto_promedio=("monto", "mean")
+).reset_index()
+
+os.makedirs("C:/mini-datalake/data/gold", exist_ok=True)
+
+clientes.to_parquet(gold_path, index=False)
+
+print("Tabla GOLD creada")
+print(clientes.head())
